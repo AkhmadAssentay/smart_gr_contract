@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Club Treasury — Multi-Sig Wallet</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+      --green: #4ade80; --red: #f87171; --yellow: #facc15;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; padding: 2rem;
+    }
+    h1 { color: var(--accent); margin-bottom: 0.25rem; font-size: 1.8rem; }
+    h2 { color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem; }
+    .subtitle { color: var(--muted); margin-bottom: 2rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* Status bar */
+    .status-bar {
+      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;
+    }
+    .status-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.5rem; flex: 1; min-width: 180px;
+    }
+    .status-card label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-card .value { font-size: 1.4rem; font-weight: 700; margin-top: 0.25rem; }
+    .status-card .value.green { color: var(--green); }
+
+    /* Sections */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+    input, textarea {
+      width: 100%; padding: 0.6rem 0.8rem; margin: 0.4rem 0;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 0.95rem;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+    button {
+      padding: 0.6rem 1.2rem; border: none; border-radius: 8px;
+      font-weight: 600; cursor: pointer; font-size: 0.9rem;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    button:hover { opacity: 0.85; }
+    button:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #0f172a; }
+    .btn-green { background: var(--green); color: #0f172a; }
+    .btn-red { background: var(--red); color: #0f172a; }
+    .btn-yellow { background: var(--yellow); color: #0f172a; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+    /* Transaction list */
+    .tx-item {
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem; margin-bottom: 0.75rem; background: var(--bg);
+    }
+    .tx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .tx-id { color: var(--accent); font-weight: 700; }
+    .badge {
+      padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-pending { background: var(--yellow); color: #0f172a; }
+    .badge-executed { background: var(--green); color: #0f172a; }
+    .tx-detail { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.15rem; }
+    .tx-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+    .connect-prompt { text-align: center; padding: 3rem; }
+    .connect-prompt button { font-size: 1.1rem; padding: 0.8rem 2rem; }
+
+    .log { color: var(--muted); font-size: 0.85rem; margin-top: 0.5rem; min-height: 1.2rem; }
+    .log.error { color: var(--red); }
+    .log.success { color: var(--green); }
+
+    .executives-list { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .exec-badge {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.3rem 0.6rem; font-size: 0.8rem;
+      font-family: monospace; color: var(--muted);
+    }
+    .exec-badge.you { border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🏦 Student Club Treasury</h1>
+  <p class="subtitle">Multi-Signature Wallet — 2 of 3 approvals required</p>
+
+  <!-- Not connected state -->
+  <div id="connectPrompt" class="connect-prompt card">
+    <p style="margin-bottom:1rem; color:var(--muted);">Connect your MetaMask wallet to interact with the treasury.</p>
+    <button class="btn-primary" onclick="connectWallet()">🦊 Connect MetaMask</button>
+    <div id="connectLog" class="log"></div>
+  </div>
+
+  <!-- Connected state (hidden initially) -->
+  <div id="app" style="display:none;">
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div class="status-card">
+        <label>Treasury Balance</label>
+        <div class="value green" id="balance">—</div>
+      </div>
+      <div class="status-card">
+        <label>Total Proposals</label>
+        <div class="value" id="txCount">—</div>
+      </div>
+      <div class="status-card">
+        <label>Your Role</label>
+        <div class="value" id="role">—</div>
+      </div>
+    </div>
+
+    <!-- Executives -->
+    <div class="card">
+      <h2>👥 Executives</h2>
+      <div id="executivesList" class="executives-list"></div>
+    </div>
+
+    <!-- Propose new transaction -->
+    <div class="card" id="proposeSection">
+      <h2>📝 Propose New Transaction</h2>
+      <input id="propTo" placeholder="Recipient address (0x...)" />
+      <input id="propValue" placeholder="Amount in ETH (e.g. 0.5)" type="number" step="0.001" />
+      <input id="propDesc" placeholder="Description (e.g. Buy club T-shirts)" />
+      <button class="btn-primary" onclick="propose()" style="margin-top:0.5rem;">Submit Proposal</button>
+      <div id="proposeLog" class="log"></div>
+    </div>
+
+    <!-- Deposit -->
+    <div class="card">
+      <h2>💰 Deposit ETH</h2>
+      <input id="depositAmount" placeholder="Amount in ETH" type="number" step="0.01" />
+      <button class="btn-green" onclick="depositETH()" style="margin-top:0.5rem;">Deposit</button>
+      <div id="depositLog" class="log"></div>
+    </div>
+
+    <!-- Transaction list -->
+    <div class="card">
+      <h2>📋 Proposals</h2>
+      <div id="txList"><p style="color:var(--muted);">Loading...</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ═══════════════════════════════════════════════════════
+  //  CONFIG — Paste your deployed contract address here!
+  // ═══════════════════════════════════════════════════════
+  const CONTRACT_ADDRESS = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
+
+  const ABI = [
+    "function deposit() payable",
+    "function proposeTransaction(address _to, uint256 _value, string _description) returns (uint256)",
+    "function approveTransaction(uint256 _txIndex)",
+    "function revokeApproval(uint256 _txIndex)",
+    "function executeTransaction(uint256 _txIndex)",
+    "function getBalance() view returns (uint256)",
+    "function getTransactionCount() view returns (uint256)",
+    "function getExecutives() view returns (address[])",
+    "function getTransaction(uint256 _txIndex) view returns (address to, uint256 value, string description, bool executed, uint256 approvalCount)",
+    "function isExecutive(address) view returns (bool)",
+    "function hasApproved(uint256, address) view returns (bool)",
+    "event Deposited(address indexed sender, uint256 amount)",
+    "event TransactionProposed(uint256 indexed txIndex, address indexed proposer, address to, uint256 value, string description)",
+    "event TransactionApproved(uint256 indexed txIndex, address indexed approver)",
+    "event TransactionExecuted(uint256 indexed txIndex, address indexed executor)"
+  ];
+
+  let provider, signer, contract, userAddress;
+
+  // ─── Connect Wallet ────────────────────────────
+
+  async function connectWallet() {
+    const log = document.getElementById("connectLog");
+    try {
+      if (!window.ethereum) {
+        log.className = "log error";
+        log.textContent = "MetaMask not detected. Please install it.";
+        return;
+      }
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = await provider.getSigner();
+      userAddress = await signer.getAddress();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+      document.getElementById("connectPrompt").style.display = "none";
+      document.getElementById("app").style.display = "block";
+
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error";
+      log.textContent = err.message;
+    }
+  }
+
+  // ─── Refresh UI ────────────────────────────────
+
+  async function refreshAll() {
+    try {
+      const balance = await contract.getBalance();
+      document.getElementById("balance").textContent = ethers.formatEther(balance) + " ETH";
+
+      const count = await contract.getTransactionCount();
+      document.getElementById("txCount").textContent = count.toString();
+
+      const isExec = await contract.isExecutive(userAddress);
+      document.getElementById("role").textContent = isExec ? "Executive ✅" : "Viewer 👁️";
+      document.getElementById("proposeSection").style.display = isExec ? "block" : "none";
+
+      // Executives list
+      const execs = await contract.getExecutives();
+      const listDiv = document.getElementById("executivesList");
+      listDiv.innerHTML = execs.map((addr, i) => {
+        const labels = ["President", "Vice-President", "Treasurer"];
+        const isYou = addr.toLowerCase() === userAddress.toLowerCase();
+        return `<span class="exec-badge ${isYou ? 'you' : ''}">${labels[i]}: ${addr.slice(0,6)}...${addr.slice(-4)}${isYou ? ' (You)' : ''}</span>`;
+      }).join("");
+
+      // Transactions
+      await loadTransactions(Number(count));
+    } catch (err) {
+      console.error("Refresh error:", err);
+    }
+  }
+
+  async function loadTransactions(count) {
+    const listDiv = document.getElementById("txList");
+    if (count === 0) {
+      listDiv.innerHTML = '<p style="color:var(--muted);">No proposals yet. Create the first one!</p>';
+      return;
+    }
+
+    let html = "";
+    for (let i = count - 1; i >= 0; i--) {
+      const tx = await contract.getTransaction(i);
+      const myApproval = await contract.hasApproved(i, userAddress);
+      const isExec = await contract.isExecutive(userAddress);
+
+      const statusClass = tx.executed ? "badge-executed" : "badge-pending";
+      const statusText = tx.executed ? "Executed ✅" : `Pending (${tx.approvalCount}/2)`;
+
+      let actions = "";
+      if (!tx.executed && isExec) {
+        if (!myApproval) {
+          actions += `<button class="btn-green btn-sm" onclick="approve(${i})">👍 Approve</button>`;
+        } else {
+          actions += `<button class="btn-yellow btn-sm" onclick="revoke(${i})">↩️ Revoke</button>`;
+        }
+        if (tx.approvalCount >= 2) {
+          actions += `<button class="btn-primary btn-sm" onclick="execute(${i})">⚡ Execute</button>`;
+        }
+      }
+
+      html += `
+        <div class="tx-item">
+          <div class="tx-header">
+            <span class="tx-id">#${i}</span>
+            <span class="badge ${statusClass}">${statusText}</span>
+          </div>
+          <div class="tx-detail"><strong>To:</strong> ${tx.to}</div>
+          <div class="tx-detail"><strong>Amount:</strong> ${ethers.formatEther(tx.value)} ETH</div>
+          <div class="tx-detail"><strong>Reason:</strong> ${tx.description}</div>
+          <div class="tx-actions">${actions}</div>
+          <div id="txLog${i}" class="log"></div>
+        </div>`;
+    }
+    listDiv.innerHTML = html;
+  }
+
+  // ─── Actions ───────────────────────────────────
+
+  async function propose() {
+    const log = document.getElementById("proposeLog");
+    try {
+      const to = document.getElementById("propTo").value;
+      const value = ethers.parseEther(document.getElementById("propValue").value);
+      const desc = document.getElementById("propDesc").value;
+      log.className = "log"; log.textContent = "⏳ Submitting proposal...";
+      const tx = await contract.proposeTransaction(to, value, desc);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Proposal submitted!";
+      document.getElementById("propTo").value = "";
+      document.getElementById("propValue").value = "";
+      document.getElementById("propDesc").value = "";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  async function depositETH() {
+    const log = document.getElementById("depositLog");
+    try {
+      const amount = ethers.parseEther(document.getElementById("depositAmount").value);
+      log.className = "log"; log.textContent = "⏳ Depositing...";
+      const tx = await contract.deposit({ value: amount });
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Deposited!";
+      document.getElementById("depositAmount").value = "";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  async function approve(index) {
+    const log = document.getElementById(`txLog${index}`);
+    try {
+      log.className = "log"; log.textContent = "⏳ Approving...";
+      const tx = await contract.approveTransaction(index);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Approved!";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  async function revoke(index) {
+    const log = document.getElementById(`txLog${index}`);
+    try {
+      log.className = "log"; log.textContent = "⏳ Revoking...";
+      const tx = await contract.revokeApproval(index);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Revoked!";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  async function execute(index) {
+    const log = document.getElementById(`txLog${index}`);
+    try {
+      log.className = "log"; log.textContent = "⏳ Executing...";
+      const tx = await contract.executeTransaction(index);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Executed! Funds sent.";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  // Auto-refresh on account/network change
+  if (window.ethereum) {
+    window.ethereum.on("accountsChanged", () => location.reload());
+    window.ethereum.on("chainChanged", () => location.reload());
+  }
+</script>
+
+</body>
+</html>
