@@ -9,7 +9,7 @@
     :root {
       --bg: #0f172a; --surface: #1e293b; --border: #334155;
       --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
-      --green: #4ade80; --red: #f87171; --yellow: #facc15;
+      --green: #4ade80; --red: #f87171; --yellow: #facc15; --purple: #c084fc;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,31 +20,29 @@
     h1 { color: var(--accent); margin-bottom: 0.25rem; font-size: 1.8rem; }
     h2 { color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem; }
     .subtitle { color: var(--muted); margin-bottom: 2rem; }
-    .container { max-width: 900px; margin: 0 auto; }
+    .container { max-width: 960px; margin: 0 auto; }
 
-    /* Status bar */
-    .status-bar {
-      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;
-    }
+    .status-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
     .status-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 1rem 1.5rem; flex: 1; min-width: 180px;
+      border-radius: 12px; padding: 1rem 1.5rem; flex: 1; min-width: 160px;
     }
     .status-card label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .status-card .value { font-size: 1.4rem; font-weight: 700; margin-top: 0.25rem; }
     .status-card .value.green { color: var(--green); }
 
-    /* Sections */
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
     }
-    input, textarea {
+    .form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .form-row input, .form-row select { flex: 1; min-width: 140px; }
+    input, textarea, select {
       width: 100%; padding: 0.6rem 0.8rem; margin: 0.4rem 0;
       background: var(--bg); border: 1px solid var(--border);
       border-radius: 8px; color: var(--text); font-size: 0.95rem;
     }
-    input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    input:focus, select:focus { outline: none; border-color: var(--accent); }
 
     button {
       padding: 0.6rem 1.2rem; border: none; border-radius: 8px;
@@ -53,32 +51,36 @@
     }
     button:hover { opacity: 0.85; }
     button:active { transform: scale(0.97); }
-    .btn-primary { background: var(--accent); color: #0f172a; }
-    .btn-green { background: var(--green); color: #0f172a; }
-    .btn-red { background: var(--red); color: #0f172a; }
-    .btn-yellow { background: var(--yellow); color: #0f172a; }
-    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+    .btn-primary  { background: var(--accent);  color: #0f172a; }
+    .btn-green    { background: var(--green);   color: #0f172a; }
+    .btn-red      { background: var(--red);     color: #0f172a; }
+    .btn-yellow   { background: var(--yellow);  color: #0f172a; }
+    .btn-purple   { background: var(--purple);  color: #0f172a; }
+    .btn-sm       { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
 
-    /* Transaction list */
     .tx-item {
       border: 1px solid var(--border); border-radius: 10px;
       padding: 1rem; margin-bottom: 0.75rem; background: var(--bg);
     }
-    .tx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .tx-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem; }
     .tx-id { color: var(--accent); font-weight: 700; }
+    .badge-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
     .badge {
-      padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+      padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 600;
     }
-    .badge-pending { background: var(--yellow); color: #0f172a; }
-    .badge-executed { background: var(--green); color: #0f172a; }
+    .badge-pending   { background: var(--yellow);  color: #0f172a; }
+    .badge-executed  { background: var(--green);   color: #0f172a; }
+    .badge-cancelled { background: var(--red);     color: #0f172a; }
+    .badge-category  { background: #1e3a5f;        color: var(--accent); }
+    .badge-expiring  { background: #7c2d12;        color: #fca5a5; }
     .tx-detail { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.15rem; }
-    .tx-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .tx-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
 
     .connect-prompt { text-align: center; padding: 3rem; }
     .connect-prompt button { font-size: 1.1rem; padding: 0.8rem 2rem; }
 
     .log { color: var(--muted); font-size: 0.85rem; margin-top: 0.5rem; min-height: 1.2rem; }
-    .log.error { color: var(--red); }
+    .log.error   { color: var(--red); }
     .log.success { color: var(--green); }
 
     .executives-list { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
@@ -88,22 +90,31 @@
       font-family: monospace; color: var(--muted);
     }
     .exec-badge.you { border-color: var(--accent); color: var(--accent); }
+
+    .repl-item {
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.8rem 1rem; margin-bottom: 0.6rem; background: var(--bg);
+    }
+    .section-toggle { cursor: pointer; user-select: none; }
+    .section-toggle::after { content: " ▾"; color: var(--muted); font-size: 0.9rem; }
+    .collapsible { display: none; }
+    .collapsible.open { display: block; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <h1>🏦 Student Club Treasury</h1>
-  <p class="subtitle">Multi-Signature Wallet — 2 of 3 approvals required</p>
+  <p class="subtitle">Multi-Signature Wallet — 2-of-3 approvals required &nbsp;|&nbsp; 7-day proposal expiry</p>
 
-  <!-- Not connected state -->
+  <!-- Not connected -->
   <div id="connectPrompt" class="connect-prompt card">
     <p style="margin-bottom:1rem; color:var(--muted);">Connect your MetaMask wallet to interact with the treasury.</p>
     <button class="btn-primary" onclick="connectWallet()">🦊 Connect MetaMask</button>
     <div id="connectLog" class="log"></div>
   </div>
 
-  <!-- Connected state (hidden initially) -->
+  <!-- Connected (hidden initially) -->
   <div id="app" style="display:none;">
 
     <!-- Status bar -->
@@ -128,11 +139,35 @@
       <div id="executivesList" class="executives-list"></div>
     </div>
 
-    <!-- Propose new transaction -->
-    <div class="card" id="proposeSection">
+    <!-- Set Alias (executives only) -->
+    <div class="card" id="aliasSection" style="display:none;">
+      <h2>🕵️ Your Display Alias (Pseudonymity)</h2>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.6rem;">
+        Set a display name so the DApp shows a chosen alias instead of your raw wallet address.
+        Your real identity stays off-chain — only you know which alias belongs to which address.
+      </p>
+      <div class="form-row">
+        <input id="aliasInput" placeholder='e.g. "Alice" or "President-K"' />
+        <button class="btn-primary" onclick="setAlias()" style="white-space:nowrap;">Set Alias</button>
+      </div>
+      <div id="aliasLog" class="log"></div>
+    </div>
+
+    <!-- Propose new spending transaction (executives only) -->
+    <div class="card" id="proposeSection" style="display:none;">
       <h2>📝 Propose New Transaction</h2>
       <input id="propTo" placeholder="Recipient address (0x...)" />
-      <input id="propValue" placeholder="Amount in ETH (e.g. 0.5)" type="number" step="0.001" />
+      <div class="form-row">
+        <input id="propValue" placeholder="Amount in ETH (e.g. 0.5)" type="number" step="0.001" />
+        <select id="propCategory">
+          <option value="General">General</option>
+          <option value="Supplies">Supplies</option>
+          <option value="Events">Events</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Travel">Travel</option>
+          <option value="Awards">Awards</option>
+        </select>
+      </div>
       <input id="propDesc" placeholder="Description (e.g. Buy club T-shirts)" />
       <button class="btn-primary" onclick="propose()" style="margin-top:0.5rem;">Submit Proposal</button>
       <div id="proposeLog" class="log"></div>
@@ -146,37 +181,75 @@
       <div id="depositLog" class="log"></div>
     </div>
 
-    <!-- Transaction list -->
+    <!-- Spending proposals list -->
     <div class="card">
-      <h2>📋 Proposals</h2>
+      <h2>📋 Spending Proposals</h2>
       <div id="txList"><p style="color:var(--muted);">Loading...</p></div>
     </div>
-  </div>
+
+    <!-- Executive Replacement (executives only) -->
+    <div class="card" id="replSection" style="display:none;">
+      <h2 class="section-toggle" onclick="toggleCollapsible('replForm')">🔄 Executive Replacement (Update Address)</h2>
+      <div id="replForm" class="collapsible">
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.75rem;">
+          Use this if an executive loses their private key or a new person joins.
+          Requires 2-of-3 approval just like a spending transaction.
+        </p>
+        <input id="replOld" placeholder="Current executive address to replace (0x...)" />
+        <input id="replNew" placeholder="New executive address (0x...)" />
+        <button class="btn-purple" onclick="proposeRepl()" style="margin-top:0.5rem;">Propose Replacement</button>
+        <div id="replProposeLog" class="log"></div>
+        <div id="replList" style="margin-top:1rem;"></div>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
 </div>
 
 <script>
   // ═══════════════════════════════════════════════════════
-  //  CONFIG — Paste your deployed contract address here!
+  //  CONFIG — Paste your deployed contract address here
   // ═══════════════════════════════════════════════════════
-  const CONTRACT_ADDRESS = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
+  const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
   const ABI = [
+    // Deposit
     "function deposit() payable",
-    "function proposeTransaction(address _to, uint256 _value, string _description) returns (uint256)",
+    // Spending proposals
+    "function proposeTransaction(address _to, uint256 _value, string _description, string _category) returns (uint256)",
     "function approveTransaction(uint256 _txIndex)",
     "function revokeApproval(uint256 _txIndex)",
     "function executeTransaction(uint256 _txIndex)",
+    "function cancelExpiredTransaction(uint256 _txIndex)",
+    // Executive replacement
+    "function proposeReplacement(address _oldExec, address _newExec) returns (uint256)",
+    "function approveReplacement(uint256 _replIndex)",
+    "function executeReplacement(uint256 _replIndex)",
+    // Alias (pseudonymity)
+    "function setAlias(string _alias)",
+    "function getAliasOrAddress(address _exec) view returns (string)",
+    "function executiveAlias(address) view returns (string)",
+    // Views
     "function getBalance() view returns (uint256)",
     "function getTransactionCount() view returns (uint256)",
     "function getExecutives() view returns (address[])",
-    "function getTransaction(uint256 _txIndex) view returns (address to, uint256 value, string description, bool executed, uint256 approvalCount)",
+    "function getTransaction(uint256 _txIndex) view returns (address to, uint256 value, string description, string category, bool executed, bool cancelled, uint256 approvalCount, uint256 createdAt)",
     "function isExecutive(address) view returns (bool)",
     "function hasApproved(uint256, address) view returns (bool)",
+    "function getReplacementCount() view returns (uint256)",
+    "function getReplacement(uint256 _replIndex) view returns (address oldExec, address newExec, uint256 approvalCount, bool executed)",
+    "function replacementApprovals(uint256, address) view returns (bool)",
+    // Events
     "event Deposited(address indexed sender, uint256 amount)",
-    "event TransactionProposed(uint256 indexed txIndex, address indexed proposer, address to, uint256 value, string description)",
+    "event TransactionProposed(uint256 indexed txIndex, address indexed proposer, address to, uint256 value, string description, string category)",
     "event TransactionApproved(uint256 indexed txIndex, address indexed approver)",
-    "event TransactionExecuted(uint256 indexed txIndex, address indexed executor)"
+    "event TransactionExecuted(uint256 indexed txIndex, address indexed executor)",
+    "event TransactionCancelled(uint256 indexed txIndex)",
+    "event ExecutiveReplaced(address indexed oldExec, address indexed newExec)",
+    "event AliasSet(address indexed executive, string alias)"
   ];
+
+  const EXPIRY_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
   let provider, signer, contract, userAddress;
 
@@ -210,31 +283,40 @@
 
   async function refreshAll() {
     try {
-      const balance = await contract.getBalance();
+      const [balance, count, isExec, execs] = await Promise.all([
+        contract.getBalance(),
+        contract.getTransactionCount(),
+        contract.isExecutive(userAddress),
+        contract.getExecutives()
+      ]);
+
       document.getElementById("balance").textContent = ethers.formatEther(balance) + " ETH";
-
-      const count = await contract.getTransactionCount();
       document.getElementById("txCount").textContent = count.toString();
-
-      const isExec = await contract.isExecutive(userAddress);
       document.getElementById("role").textContent = isExec ? "Executive ✅" : "Viewer 👁️";
       document.getElementById("proposeSection").style.display = isExec ? "block" : "none";
+      document.getElementById("replSection").style.display    = isExec ? "block" : "none";
+      document.getElementById("aliasSection").style.display   = isExec ? "block" : "none";
 
-      // Executives list
-      const execs = await contract.getExecutives();
-      const listDiv = document.getElementById("executivesList");
-      listDiv.innerHTML = execs.map((addr, i) => {
-        const labels = ["President", "Vice-President", "Treasurer"];
-        const isYou = addr.toLowerCase() === userAddress.toLowerCase();
-        return `<span class="exec-badge ${isYou ? 'you' : ''}">${labels[i]}: ${addr.slice(0,6)}...${addr.slice(-4)}${isYou ? ' (You)' : ''}</span>`;
+      // Executives list — fetch aliases for all 3
+      const labels = ["President", "Vice-President", "Treasurer"];
+      const aliases = await Promise.all(execs.map(addr => contract.executiveAlias(addr)));
+      document.getElementById("executivesList").innerHTML = execs.map((addr, i) => {
+        const isYou  = addr.toLowerCase() === userAddress.toLowerCase();
+        const display = aliases[i] ? aliases[i] : `${addr.slice(0,6)}…${addr.slice(-4)}`;
+        const tooltip = aliases[i] ? `title="${addr}"` : "";
+        return `<span class="exec-badge ${isYou ? 'you' : ''}" ${tooltip}>${labels[i]}: ${display}${isYou ? ' (You)' : ''}</span>`;
       }).join("");
 
-      // Transactions
-      await loadTransactions(Number(count));
+      await Promise.all([
+        loadTransactions(Number(count)),
+        loadReplacements()
+      ]);
     } catch (err) {
       console.error("Refresh error:", err);
     }
   }
+
+  // ─── Spending Proposals ────────────────────────
 
   async function loadTransactions(count) {
     const listDiv = document.getElementById("txList");
@@ -243,24 +325,58 @@
       return;
     }
 
+    const isExec = await contract.isExecutive(userAddress);
+    const now = Math.floor(Date.now() / 1000);
     let html = "";
+
     for (let i = count - 1; i >= 0; i--) {
-      const tx = await contract.getTransaction(i);
-      const myApproval = await contract.hasApproved(i, userAddress);
-      const isExec = await contract.isExecutive(userAddress);
+      const [tx, myApproval] = await Promise.all([
+        contract.getTransaction(i),
+        contract.hasApproved(i, userAddress)
+      ]);
 
-      const statusClass = tx.executed ? "badge-executed" : "badge-pending";
-      const statusText = tx.executed ? "Executed ✅" : `Pending (${tx.approvalCount}/2)`;
+      const expiresAt = Number(tx.createdAt) + EXPIRY_SECONDS;
+      const isExpired = now > expiresAt;
+      const timeLeft  = expiresAt - now;
 
-      let actions = "";
-      if (!tx.executed && isExec) {
-        if (!myApproval) {
-          actions += `<button class="btn-green btn-sm" onclick="approve(${i})">👍 Approve</button>`;
+      // Status badge
+      let statusBadge = "";
+      if (tx.executed) {
+        statusBadge = `<span class="badge badge-executed">Executed ✅</span>`;
+      } else if (tx.cancelled) {
+        statusBadge = `<span class="badge badge-cancelled">Cancelled ✗</span>`;
+      } else if (isExpired) {
+        statusBadge = `<span class="badge badge-expiring">Expired</span>`;
+      } else {
+        statusBadge = `<span class="badge badge-pending">Pending (${tx.approvalCount}/2)</span>`;
+      }
+
+      // Expiry info
+      let expiryInfo = "";
+      if (!tx.executed && !tx.cancelled) {
+        if (isExpired) {
+          expiryInfo = `<div class="tx-detail" style="color:var(--red);">⏰ Expired — can be cancelled</div>`;
         } else {
-          actions += `<button class="btn-yellow btn-sm" onclick="revoke(${i})">↩️ Revoke</button>`;
+          const d = Math.floor(timeLeft / 86400);
+          const h = Math.floor((timeLeft % 86400) / 3600);
+          expiryInfo = `<div class="tx-detail">⏳ Expires in: ${d}d ${h}h</div>`;
         }
-        if (tx.approvalCount >= 2) {
-          actions += `<button class="btn-primary btn-sm" onclick="execute(${i})">⚡ Execute</button>`;
+      }
+
+      // Action buttons
+      let actions = "";
+      if (!tx.executed && !tx.cancelled && isExec) {
+        if (isExpired) {
+          actions += `<button class="btn-red btn-sm" onclick="cancelExpired(${i})">🗑️ Cancel Expired</button>`;
+        } else {
+          if (!myApproval) {
+            actions += `<button class="btn-green btn-sm" onclick="approve(${i})">👍 Approve</button>`;
+          } else {
+            actions += `<button class="btn-yellow btn-sm" onclick="revoke(${i})">↩️ Revoke</button>`;
+          }
+          if (tx.approvalCount >= 2n) {
+            actions += `<button class="btn-primary btn-sm" onclick="execute(${i})">⚡ Execute</button>`;
+          }
         }
       }
 
@@ -268,11 +384,15 @@
         <div class="tx-item">
           <div class="tx-header">
             <span class="tx-id">#${i}</span>
-            <span class="badge ${statusClass}">${statusText}</span>
+            <div class="badge-row">
+              ${statusBadge}
+              <span class="badge badge-category">${tx.category}</span>
+            </div>
           </div>
           <div class="tx-detail"><strong>To:</strong> ${tx.to}</div>
           <div class="tx-detail"><strong>Amount:</strong> ${ethers.formatEther(tx.value)} ETH</div>
           <div class="tx-detail"><strong>Reason:</strong> ${tx.description}</div>
+          ${expiryInfo}
           <div class="tx-actions">${actions}</div>
           <div id="txLog${i}" class="log"></div>
         </div>`;
@@ -280,18 +400,67 @@
     listDiv.innerHTML = html;
   }
 
-  // ─── Actions ───────────────────────────────────
+  // ─── Executive Replacement List ────────────────
+
+  async function loadReplacements() {
+    const count = Number(await contract.getReplacementCount());
+    const listDiv = document.getElementById("replList");
+    if (count === 0) {
+      listDiv.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No replacement proposals yet.</p>';
+      return;
+    }
+
+    const isExec = await contract.isExecutive(userAddress);
+    let html = "";
+    for (let i = count - 1; i >= 0; i--) {
+      const [repl, myApproval] = await Promise.all([
+        contract.getReplacement(i),
+        contract.replacementApprovals(i, userAddress)
+      ]);
+
+      const statusText = repl.executed
+        ? '<span class="badge badge-executed">Executed ✅</span>'
+        : `<span class="badge badge-pending">Pending (${repl.approvalCount}/2)</span>`;
+
+      let actions = "";
+      if (!repl.executed && isExec) {
+        if (!myApproval) {
+          actions += `<button class="btn-purple btn-sm" onclick="approveRepl(${i})">👍 Approve</button>`;
+        }
+        if (repl.approvalCount >= 2n) {
+          actions += `<button class="btn-primary btn-sm" onclick="execRepl(${i})">⚡ Execute</button>`;
+        }
+      }
+
+      html += `
+        <div class="repl-item">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+            <strong style="color:var(--accent);">Replacement #${i}</strong>
+            ${statusText}
+          </div>
+          <div class="tx-detail"><strong>Remove:</strong> ${repl.oldExec.slice(0,8)}…${repl.oldExec.slice(-6)}</div>
+          <div class="tx-detail"><strong>Install:</strong> ${repl.newExec.slice(0,8)}…${repl.newExec.slice(-6)}</div>
+          <div class="tx-actions">${actions}</div>
+          <div id="replLog${i}" class="log"></div>
+        </div>`;
+    }
+    listDiv.innerHTML = html;
+  }
+
+  // ─── Spending Actions ──────────────────────────
 
   async function propose() {
     const log = document.getElementById("proposeLog");
     try {
-      const to = document.getElementById("propTo").value;
-      const value = ethers.parseEther(document.getElementById("propValue").value);
-      const desc = document.getElementById("propDesc").value;
-      log.className = "log"; log.textContent = "⏳ Submitting proposal...";
-      const tx = await contract.proposeTransaction(to, value, desc);
+      const to       = document.getElementById("propTo").value.trim();
+      const value    = ethers.parseEther(document.getElementById("propValue").value);
+      const desc     = document.getElementById("propDesc").value.trim();
+      const category = document.getElementById("propCategory").value;
+      if (!to || !desc) { log.className = "log error"; log.textContent = "❌ Fill in all fields."; return; }
+      log.className = "log"; log.textContent = "⏳ Submitting proposal…";
+      const tx = await contract.proposeTransaction(to, value, desc, category);
       await tx.wait();
-      log.className = "log success"; log.textContent = "✅ Proposal submitted!";
+      log.className = "log success"; log.textContent = "✅ Proposal submitted! Your approval is counted automatically.";
       document.getElementById("propTo").value = "";
       document.getElementById("propValue").value = "";
       document.getElementById("propDesc").value = "";
@@ -305,7 +474,7 @@
     const log = document.getElementById("depositLog");
     try {
       const amount = ethers.parseEther(document.getElementById("depositAmount").value);
-      log.className = "log"; log.textContent = "⏳ Depositing...";
+      log.className = "log"; log.textContent = "⏳ Depositing…";
       const tx = await contract.deposit({ value: amount });
       await tx.wait();
       log.className = "log success"; log.textContent = "✅ Deposited!";
@@ -316,10 +485,31 @@
     }
   }
 
+  // ─── Alias (Pseudonymity) ──────────────────────
+
+  async function setAlias() {
+    const log = document.getElementById("aliasLog");
+    try {
+      const name = document.getElementById("aliasInput").value.trim();
+      log.className = "log"; log.textContent = "⏳ Setting alias…";
+      const tx = await contract.setAlias(name);
+      await tx.wait();
+      if (name === "") {
+        log.className = "log success"; log.textContent = "✅ Alias cleared — address displayed again.";
+      } else {
+        log.className = "log success"; log.textContent = `✅ Alias set to "${name}". Your real address stays private.`;
+      }
+      document.getElementById("aliasInput").value = "";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
   async function approve(index) {
     const log = document.getElementById(`txLog${index}`);
     try {
-      log.className = "log"; log.textContent = "⏳ Approving...";
+      log.className = "log"; log.textContent = "⏳ Approving…";
       const tx = await contract.approveTransaction(index);
       await tx.wait();
       log.className = "log success"; log.textContent = "✅ Approved!";
@@ -332,7 +522,7 @@
   async function revoke(index) {
     const log = document.getElementById(`txLog${index}`);
     try {
-      log.className = "log"; log.textContent = "⏳ Revoking...";
+      log.className = "log"; log.textContent = "⏳ Revoking…";
       const tx = await contract.revokeApproval(index);
       await tx.wait();
       log.className = "log success"; log.textContent = "✅ Revoked!";
@@ -345,7 +535,7 @@
   async function execute(index) {
     const log = document.getElementById(`txLog${index}`);
     try {
-      log.className = "log"; log.textContent = "⏳ Executing...";
+      log.className = "log"; log.textContent = "⏳ Executing…";
       const tx = await contract.executeTransaction(index);
       await tx.wait();
       log.className = "log success"; log.textContent = "✅ Executed! Funds sent.";
@@ -355,12 +545,76 @@
     }
   }
 
-  // Auto-refresh on account/network change
+  async function cancelExpired(index) {
+    const log = document.getElementById(`txLog${index}`);
+    try {
+      log.className = "log"; log.textContent = "⏳ Cancelling…";
+      const tx = await contract.cancelExpiredTransaction(index);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Expired proposal cancelled.";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  // ─── Replacement Actions ───────────────────────
+
+  async function proposeRepl() {
+    const log = document.getElementById("replProposeLog");
+    try {
+      const oldAddr = document.getElementById("replOld").value.trim();
+      const newAddr = document.getElementById("replNew").value.trim();
+      if (!oldAddr || !newAddr) { log.className = "log error"; log.textContent = "❌ Fill in both addresses."; return; }
+      log.className = "log"; log.textContent = "⏳ Proposing replacement…";
+      const tx = await contract.proposeReplacement(oldAddr, newAddr);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Replacement proposed! Your approval is counted.";
+      document.getElementById("replOld").value = "";
+      document.getElementById("replNew").value = "";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  async function approveRepl(index) {
+    const log = document.getElementById(`replLog${index}`);
+    try {
+      log.className = "log"; log.textContent = "⏳ Approving…";
+      const tx = await contract.approveReplacement(index);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Approved!";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  async function execRepl(index) {
+    const log = document.getElementById(`replLog${index}`);
+    try {
+      log.className = "log"; log.textContent = "⏳ Executing replacement…";
+      const tx = await contract.executeReplacement(index);
+      await tx.wait();
+      log.className = "log success"; log.textContent = "✅ Executive replaced!";
+      await refreshAll();
+    } catch (err) {
+      log.className = "log error"; log.textContent = "❌ " + (err.reason || err.message);
+    }
+  }
+
+  // ─── UI helpers ────────────────────────────────
+
+  function toggleCollapsible(id) {
+    document.getElementById(id).classList.toggle("open");
+  }
+
+  // Auto-refresh on MetaMask account/network change
   if (window.ethereum) {
     window.ethereum.on("accountsChanged", () => location.reload());
-    window.ethereum.on("chainChanged", () => location.reload());
+    window.ethereum.on("chainChanged",    () => location.reload());
   }
 </script>
-
 </body>
 </html>

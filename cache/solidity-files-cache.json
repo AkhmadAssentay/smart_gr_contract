@@ -36,6 +36,42 @@
       "artifacts": [
         "MultiSigTreasury"
       ]
+    },
+    "/Users/Shared/Local Disk D/Family/Akhmad/Fall 25/Blockchain/project/smart_gr_contract/contracts/MultiSigTreasury.sol": {
+      "lastModificationDate": 1775730639041,
+      "contentHash": "57309b5111f16dd57ef67b25508b6d3e",
+      "sourceName": "contracts/MultiSigTreasury.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "MultiSigTreasury"
+      ]
     }
   }
 }

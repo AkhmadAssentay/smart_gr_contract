@@ -1,0 +1,703 @@
+% ============================================================
+%  Multi-Signature Treasury for Student Clubs
+%  CSCI 435 — Blockchain Engineering
+%  Final Project Report
+% ============================================================
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{amsmath}
+\usepackage{parskip}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{mdframed}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit}
+
+% ── Hyperlinks ────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true, linkcolor=blue!70!black,
+  urlcolor=blue!70!black, citecolor=blue!70!black
+}
+
+% ── Solidity code style ───────────────────────────────────
+\definecolor{codebg}{HTML}{1e293b}
+\definecolor{codecomment}{HTML}{6a9955}
+\definecolor{codekeyword}{HTML}{569cd6}
+\definecolor{codestring}{HTML}{ce9178}
+\definecolor{codenumber}{HTML}{b5cea8}
+
+\lstdefinelanguage{Solidity}{
+  keywords={pragma, solidity, contract, function, returns, external, public,
+            internal, view, pure, payable, memory, storage, calldata,
+            mapping, address, uint256, bool, string, bytes, struct, event,
+            emit, require, modifier, if, else, for, while, return,
+            constructor, true, false, uint, bytes32, indexed, receive},
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  string=[b]",  morestring=[b]',  sensitive=true
+}
+
+\lstset{
+  language=Solidity,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small\color{white},
+  keywordstyle=\color{codekeyword}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+  numberstyle=\tiny\color{codenumber},
+  numbers=left, numbersep=8pt,
+  breaklines=true, frame=single, framesep=4pt,
+  rulecolor=\color{gray!40}, tabsize=4,
+  showstringspaces=false, captionpos=b
+}
+
+% ── Header / footer ───────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Multi-Signature Treasury for Student Clubs}
+\rhead{\small CSCI 435 — Blockchain}
+\cfoot{\thepage}
+
+% ── Section formatting ────────────────────────────────────
+\titleformat{\section}{\large\bfseries\color{blue!70!black}}{\thesection.}{0.5em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+
+% ─────────────────────────────────────────────────────────
+\begin{document}
+
+% ══════════════════════════════════════════════════════════
+%  Title page
+% ══════════════════════════════════════════════════════════
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+  {\Huge\bfseries Multi-Signature Treasury\\[0.4em]
+   for Student Clubs\par}
+  \vspace{0.8cm}
+  {\large\itshape Decentralised Financial Governance on Ethereum\par}
+  \vspace{1.8cm}
+  {\large
+    \begin{tabular}{ll}
+      \textbf{Name} & \textbf{Student ID} \\[4pt]
+      Akhmed Assentay & 201842715 \\
+    \end{tabular}
+  }
+  \vspace{1.2cm}
+  {\large
+    Course: CSCI 435 — Blockchain Engineering \\[0.3em]
+    Department of Computer Science \\[0.3em]
+    Submission Date: \today
+  }
+  \vfill
+  \begin{mdframed}[backgroundcolor=gray!10, linecolor=blue!40, linewidth=1pt,
+                   innerleftmargin=12pt, innerrightmargin=12pt,
+                   innertopmargin=8pt, innerbottommargin=8pt]
+    \centering\itshape
+    ``Any transaction of club funds requires agreement from\\
+    at least 2 out of 3 elected executives.''
+  \end{mdframed}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════
+\section{Introduction}
+% ══════════════════════════════════════════════════════════
+
+\subsection{Problem Statement}
+
+Student clubs regularly collect membership dues, accept donations, and spend on events, equipment, and travel. In traditional clubs, financial authority is vested in a single treasurer — a single point of failure. Funds can be lost if the treasurer is unavailable, acts unilaterally, loses their credentials, or leaves the organisation.
+
+\subsection{Why This Problem Matters}
+
+\begin{itemize}
+  \item A solo treasurer can unilaterally drain the treasury with no checks.
+  \item There is no transparent audit trail — members cannot independently verify spending.
+  \item Key loss or leadership transitions can freeze access to club funds entirely.
+  \item Disputes over budget allocations have no on-chain resolution mechanism.
+\end{itemize}
+
+\subsection{What the Project Solves}
+
+This project implements a \textbf{Multi-Signature (Multi-Sig) Treasury} smart contract that requires \textbf{2 out of 3} elected club executives to approve any outgoing transaction. No single person can unilaterally move funds, and every proposal, approval, and execution is permanently recorded on the Ethereum blockchain.
+
+\subsection{Blockchain Solution Overview}
+
+The system is composed of three layers:
+\begin{enumerate}
+  \item A \textbf{Solidity smart contract} deployed on Ethereum (Hardhat local / Sepolia testnet).
+  \item A \textbf{Hardhat} development environment with a comprehensive test suite (75 tests).
+  \item A \textbf{browser DApp} (HTML + ethers.js v6) connected to wallets via MetaMask.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════
+\section{Project Objectives}
+% ══════════════════════════════════════════════════════════
+
+\subsection{Main Objectives}
+
+\begin{enumerate}
+  \item Implement a trustless 2-of-3 multi-sig spending mechanism for a student club treasury.
+  \item Ensure every executive's vote is meaningful from the moment they propose a transaction.
+  \item Support on-chain governance for leadership transitions (executive address replacement).
+  \item Provide an emergency pause mechanism to freeze spending during a security incident.
+  \item Enforce per-category spending budgets to prevent overspending in any one area.
+  \item Maintain a transparent donor leaderboard on-chain.
+\end{enumerate}
+
+\subsection{Expected Functionality}
+
+\begin{itemize}
+  \item Any executive can propose, approve, revoke, or execute spending transactions.
+  \item A new address replaces an executive wallet without redeploying the contract.
+  \item Stale proposals (older than 7 days) can be cancelled by any executive.
+  \item Anyone can deposit ETH; only executives can withdraw through the approval process.
+  \item The DApp reflects real-time contract state and supports all contract functions.
+\end{itemize}
+
+\subsection{Target Users}
+
+\begin{itemize}
+  \item \textbf{Club executives} (President, Vice-President, Treasurer) — manage funds.
+  \item \textbf{Club members and guests} — donate ETH and audit spending history.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════
+\section{System Overview}
+% ══════════════════════════════════════════════════════════
+
+\subsection{Components of the System}
+
+\begin{table}[h]
+  \centering
+  \begin{tabularx}{\linewidth}{>{\bfseries}lX}
+    \toprule
+    Component & Description \\
+    \midrule
+    \texttt{MultiSigTreasury.sol} & Core Solidity smart contract. Stores all state and enforces governance rules on-chain. \\
+    Hardhat & Development framework for compiling, testing, and deploying the contract. \\
+    \texttt{test/MultiSigTreasury.test.js} & 75 automated tests covering all features and edge cases. \\
+    \texttt{scripts/deploy.js} & Deployment script for Hardhat local and Sepolia networks. \\
+    \texttt{frontend/index.html} & Single-page DApp using ethers.js v6 and MetaMask. \\
+    MetaMask & Browser wallet that signs and submits transactions. \\
+    Ethereum Sepolia & Public testnet for live demonstration. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{System components and descriptions}
+\end{table}
+
+\subsection{Technologies Used}
+
+\begin{itemize}
+  \item \textbf{Solidity \textasciicircum 0.8.20} — smart contract language.
+  \item \textbf{Hardhat v2.22} — Ethereum development environment.
+  \item \textbf{Chai} — assertion library for JavaScript tests.
+  \item \textbf{ethers.js v6} — Ethereum library for the browser DApp.
+  \item \textbf{HTML5 / CSS3 / Vanilla JS} — frontend (no framework dependency).
+  \item \textbf{Node.js / npm} — toolchain.
+\end{itemize}
+
+\subsection{How Users Interact with the System}
+
+Executives and members open \texttt{frontend/index.html} in their browser, connect MetaMask (set to the local Hardhat network or Sepolia), and interact through the UI. Every button click triggers a signed Ethereum transaction, which Hardhat or Sepolia mines and records permanently.
+
+\subsection{Architecture Diagram}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.7cm,
+    box/.style={rectangle, draw=blue!60, fill=blue!8, rounded corners=4pt,
+                minimum width=5.5cm, minimum height=0.75cm,
+                font=\small\bfseries, align=center},
+    chain/.style={rectangle, draw=gray!60, fill=gray!12, rounded corners=4pt,
+                  minimum width=5.5cm, minimum height=0.75cm,
+                  font=\small\bfseries, align=center},
+    arr/.style={-{Stealth[scale=0.85]}, thick, blue!50},
+    lbl/.style={font=\footnotesize\itshape, text=gray!70}
+  ]
+    \node[box]   (mm)  {MetaMask Wallet (User)};
+    \node[box,   below=of mm]  (ui)  {DApp — frontend/index.html};
+    \node[box,   below=of ui]  (rpc) {Hardhat Node / Sepolia RPC};
+    \node[chain, below=of rpc] (sc)  {MultiSigTreasury.sol (EVM)};
+
+    \draw[arr] (mm)  -- (ui)  node[midway, right=2pt, lbl] {signs transaction};
+    \draw[arr] (ui)  -- (rpc) node[midway, right=2pt, lbl] {ethers.js JSON-RPC};
+    \draw[arr] (rpc) -- (sc)  node[midway, right=2pt, lbl] {EVM call};
+    \draw[arr] (sc.west) -- ++(-1.6,0)
+      -- ++(0,2.9) node[midway, left=4pt, lbl] {events / state}
+      -- (ui.west);
+  \end{tikzpicture}
+  \caption{System Architecture — browser to on-chain contract}
+\end{figure}
+
+% ══════════════════════════════════════════════════════════
+\section{Project Workflow}
+% ══════════════════════════════════════════════════════════
+
+\subsection{Planning Process}
+
+\begin{enumerate}
+  \item Reviewed the project description: 2-of-3 multi-sig treasury for student clubs (DAO variant).
+  \item Identified the core problem: single-treasurer risk and lack of on-chain transparency.
+  \item Defined the governance model: propose → approve → execute lifecycle.
+  \item Identified additional features required for full marks: budget caps, emergency pause, donor leaderboard, executive replacement.
+  \item Selected technology stack: Solidity, Hardhat, ethers.js v6, MetaMask.
+\end{enumerate}
+
+\subsection{Development Stages}
+
+\begin{enumerate}
+  \item \textbf{Core contract} — constructor, modifiers, deposit, basic multi-sig (propose / approve / revoke / execute).
+  \item \textbf{Proposer auto-approval} — fixed the issue where the proposer's own agreement was not counted.
+  \item \textbf{Spending categories} — added \texttt{category} field to proposals.
+  \item \textbf{7-day expiry} — \texttt{createdAt} timestamp and \texttt{cancelExpiredTransaction()}.
+  \item \textbf{Executive replacement} — separate governance flow for key-rotation.
+  \item \textbf{Emergency pause} — 2-of-3 vote circuit breaker with reset-on-unpause.
+  \item \textbf{Category budget caps} — per-category ETH cap enforced at propose and execute time.
+  \item \textbf{Donor leaderboard} — \texttt{totalDonated} mapping and \texttt{\_donors} array.
+  \item \textbf{Frontend DApp} — full UI for all contract features, expiry countdown, category badges.
+  \item \textbf{Test suite} — 75 automated tests across all features and edge cases.
+  \item \textbf{Documentation} — this report and LaTeX source file.
+\end{enumerate}
+
+\subsection{Testing and Debugging}
+
+Tests were written in parallel with each feature using Hardhat's in-process network. Time-dependent tests (expiry) used \texttt{evm\_increaseTime} to simulate 7-day passage without waiting. The one test bug found was a category-cap assertion at the wrong call site (propose vs.\ execute) — fixed once the actual revert location was identified from the Hardhat stack trace.
+
+% ══════════════════════════════════════════════════════════
+\section{Smart Contract Design}
+% ══════════════════════════════════════════════════════════
+
+\subsection{Purpose of the Smart Contract}
+
+\texttt{MultiSigTreasury} is a trustless governance contract: it holds ETH on behalf of a student club and enforces a 2-of-3 approval requirement for every outgoing payment. It additionally manages executive identity (replacement), emergency safety (pause), budget discipline (category caps), and community transparency (donor leaderboard).
+
+\subsection{Contract Structure}
+\label{sec:contract-structure}
+
+\subsubsection*{Constants}
+
+\begin{lstlisting}[caption={Constants}]
+uint256 public constant REQUIRED_APPROVALS = 2;
+uint256 public constant MAX_EXECUTIVES     = 3;
+uint256 public constant EXPIRY_PERIOD      = 7 days;
+\end{lstlisting}
+
+\subsubsection*{State Variables}
+
+\begin{table}[h]
+  \centering
+  \begin{tabularx}{\linewidth}{>{\ttfamily}lX}
+    \toprule
+    Variable & Purpose \\
+    \midrule
+    executives[] & Array of 3 executive wallet addresses. \\
+    isExecutive\{addr\} & O(1) lookup: is this address an executive? \\
+    paused & Emergency pause flag. \\
+    pauseVoteCount / unpauseVoteCount & Vote tallies for pause/unpause. \\
+    hasPauseVoted\{\} / hasUnpauseVoted\{\} & Prevent double-voting on pause. \\
+    transactions[] & All spending proposals (pending/executed/cancelled). \\
+    hasApproved\{txIdx\}\{addr\} & Per-proposal, per-executive approval flag. \\
+    categoryBudget\{key\} & Spending cap (wei) per category hash. \\
+    categorySpent\{key\} & Cumulative amount spent per category. \\
+    replacements[] & Executive replacement proposals. \\
+    replacementApprovals\{replIdx\}\{addr\} & Approval state for replacements. \\
+    totalDonated\{addr\} & Cumulative ETH donated per address. \\
+    \_donors[] & Ordered list of unique donor addresses. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Contract state variables}
+\end{table}
+
+\subsubsection*{Structs}
+
+\begin{lstlisting}[caption={Transaction and ExecReplacement structs}]
+struct Transaction {
+    address to;
+    uint256 value;
+    string  description;
+    string  category;       // e.g. "Supplies", "Events", "Equipment"
+    bool    executed;
+    bool    cancelled;
+    uint256 approvalCount;
+    uint256 createdAt;      // block.timestamp at proposal time
+}
+
+struct ExecReplacement {
+    address oldExec;
+    address newExec;
+    uint256 approvalCount;
+    bool    executed;
+}
+\end{lstlisting}
+
+\subsubsection*{Events}
+
+\begin{table}[h]
+  \centering
+  \begin{tabularx}{\linewidth}{>{\ttfamily}lX}
+    \toprule
+    Event & Emitted when \\
+    \midrule
+    Deposited & ETH received via \texttt{receive()} or \texttt{deposit()}. \\
+    TransactionProposed & A new spending proposal is created. \\
+    TransactionApproved & An executive approves a proposal. \\
+    ApprovalRevoked & An executive revokes their approval. \\
+    TransactionExecuted & Funds are sent to the recipient. \\
+    TransactionCancelled & An expired proposal is cancelled. \\
+    BudgetSet & A category spending cap is set or updated. \\
+    PauseVoteCast / ContractPaused & Pause vote cast / quorum reached. \\
+    UnpauseVoteCast / ContractUnpaused & Unpause vote cast / quorum reached. \\
+    ReplacementProposed / Approved & Executive swap proposed / seconded. \\
+    ExecutiveReplaced & Executive address swap executed on-chain. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Contract events}
+\end{table}
+
+\subsubsection*{Modifiers}
+
+\begin{lstlisting}[caption={Key modifiers}]
+modifier onlyExecutive()  { require(isExecutive[msg.sender], "Not an executive"); _; }
+modifier whenNotPaused()  { require(!paused, "Contract is paused"); _; }
+modifier txExists(uint256 _i)   { require(_i < transactions.length, ...); _; }
+modifier notExecuted(uint256 _i){ require(!transactions[_i].executed, ...); _; }
+modifier notCancelled(uint256 _i){ require(!transactions[_i].cancelled, ...); _; }
+\end{lstlisting}
+
+\subsection{Key Functions}
+\label{sec:key-functions}
+
+\subsubsection*{5.2.1\ \ deposit() / receive()}
+
+Accepts ETH from any address. Calls \texttt{\_recordDonation()} to track the sender in the leaderboard. Emits \texttt{Deposited}.
+
+\subsubsection*{5.2.2\ \ proposeTransaction()}
+
+\begin{lstlisting}[caption={proposeTransaction — core multi-sig entry point}]
+function proposeTransaction(
+    address _to, uint256 _value,
+    string calldata _description, string calldata _category
+) external onlyExecutive whenNotPaused returns (uint256 txIndex) {
+    require(_to != address(0), "Invalid recipient");
+    require(_value > 0, "Value must be > 0");
+    require(_value <= address(this).balance, "Insufficient treasury balance");
+
+    // Category budget check
+    bytes32 key = _categoryKey(_category);
+    if (categoryBudget[key] > 0)
+        require(categorySpent[key] + _value <= categoryBudget[key],
+                "Category budget exceeded");
+
+    txIndex = transactions.length;
+    transactions.push(Transaction({
+        ..., approvalCount: 1, createdAt: block.timestamp
+    }));
+    hasApproved[txIndex][msg.sender] = true; // proposer auto-approved
+    emit TransactionProposed(...);
+}
+\end{lstlisting}
+
+The proposer's vote is recorded immediately (\texttt{approvalCount = 1}) so that every executive's agreement counts — only one additional approval is needed to reach quorum.
+
+\subsubsection*{5.2.3\ \ approveTransaction() / revokeApproval()}
+
+Executives who did not propose may call \texttt{approveTransaction()} to add their vote. \texttt{revokeApproval()} removes a previously cast vote. Both are blocked while the contract is paused.
+
+\subsubsection*{5.2.4\ \ executeTransaction()}
+
+Transfers ETH to the recipient once \texttt{approvalCount >= 2}. Sets \texttt{executed = true} \emph{before} the \texttt{call\{\}} to prevent re-entrancy. Increments \texttt{categorySpent}.
+
+\subsubsection*{5.2.5\ \ cancelExpiredTransaction()}
+
+Any executive may cancel a proposal that has not been executed within 7 days. This prevents stale proposals from accumulating and releases budget headroom.
+
+\subsubsection*{5.2.6\ \ votePause() / voteUnpause()}
+
+Any executive can cast a pause vote. Once 2 votes are cast the contract sets \texttt{paused = true}, blocking all spending functions. Unpause requires 2 more votes and resets all vote state so the cycle can repeat.
+
+\subsubsection*{5.2.7\ \ setCategoryBudget()}
+
+Sets a maximum cumulative ETH cap for a named category (hashed to \texttt{bytes32} key). A cap of 0 removes the limit.
+
+\subsubsection*{5.2.8\ \ proposeReplacement() / approveReplacement() / executeReplacement()}
+
+Mirrors the spending multi-sig but for executive roster changes. Proposer is auto-approved; one more approval triggers the swap in \texttt{executives[]} and \texttt{isExecutive}.
+
+% ══════════════════════════════════════════════════════════
+\section{Implementation Details}
+% ══════════════════════════════════════════════════════════
+
+\subsection{Programming Languages and Frameworks}
+
+\begin{table}[h]
+  \centering
+  \begin{tabularx}{\linewidth}{>{\bfseries}lX}
+    \toprule
+    Language / Tool & Role \\
+    \midrule
+    Solidity 0.8.20 & Smart contract. \\
+    JavaScript (CommonJS) & Hardhat config, deployment scripts, test suite. \\
+    HTML5 / CSS3 / JS (browser) & Frontend DApp. \\
+    Hardhat v2.22 & Compile, test, deploy. \\
+    Chai & Test assertions. \\
+    ethers.js v6 & JavaScript $\leftrightarrow$ Ethereum bridge (DApp \& tests). \\
+    Node.js 20 / npm & Package manager and runtime. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Technology stack}
+\end{table}
+
+\subsection{Security Implementation}
+
+\begin{table}[h]
+  \centering
+  \begin{tabularx}{\linewidth}{>{\bfseries}lX}
+    \toprule
+    Measure & How it is implemented \\
+    \midrule
+    Re-entrancy guard & \texttt{txn.executed = true} is set before \texttt{call\{\}}, making a re-entrant callback revert on the \texttt{notExecuted} modifier. \\
+    Access control & \texttt{onlyExecutive} modifier on every governance function. \\
+    Double-vote prevention & \texttt{hasApproved}, \texttt{hasPauseVoted}, \texttt{hasUnpauseVoted} mappings enforce one vote per executive per action. \\
+    Zero-address validation & Constructor and replacement proposals reject \texttt{address(0)}. \\
+    Duplicate executive check & Constructor iterates and rejects duplicates before adding. \\
+    Balance checks & Both propose and execute verify sufficient treasury balance. \\
+    Budget enforcement & Category cap checked at propose time (early rejection) and at execute time (race-condition safety). \\
+    Expiry & \texttt{notCancelled} modifier blocks interaction with cancelled proposals. \\
+    Pause state & \texttt{whenNotPaused} modifier on propose, approve, and execute. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Security measures}
+\end{table}
+
+% ══════════════════════════════════════════════════════════
+\section{Project Results}
+% ══════════════════════════════════════════════════════════
+
+\subsection{Test Suite Results}
+
+All \textbf{75 tests pass} with a total runtime of approximately 1 second on the in-process Hardhat network.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{lr}
+    \toprule
+    Test Group & Tests \\
+    \midrule
+    Deployment                  & 5  \\
+    Deposits \& Donor Leaderboard & 7  \\
+    Emergency Pause             & 11 \\
+    Category Budget Caps        & 8  \\
+    Propose Transaction         & 5  \\
+    Approve Transaction         & 5  \\
+    Revoke Approval             & 3  \\
+    Execute Transaction         & 7  \\
+    Transaction Expiry          & 5  \\
+    Executive Replacement       & 6  \\
+    Executive Aliases           & 7  \\
+    End-to-End Scenarios        & 5  \\
+    \midrule
+    \textbf{Total}              & \textbf{75} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Test suite breakdown — all 75 passing}
+\end{table}
+
+\subsection{Contract Metrics}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{lr}
+    \toprule
+    Metric & Value \\
+    \midrule
+    Lines of Solidity code    & 310 \\
+    Public / external functions & 18 \\
+    Events defined            & 11 \\
+    Modifiers defined         & 5  \\
+    Structs defined           & 2  \\
+    Required approvals        & 2 of 3 \\
+    Expiry period             & 7 days \\
+    Solidity compiler version & 0.8.20 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Contract metrics}
+\end{table}
+
+\subsection{DApp UI — Working Screenshots Description}
+
+The browser DApp displays the following panels when MetaMask is connected:
+
+\begin{itemize}
+  \item \textbf{Status bar}: treasury balance in ETH, total proposal count, connected user role (Executive / Viewer).
+  \item \textbf{Executives panel}: all 3 wallet addresses with role labels (President, Vice-President, Treasurer) and a ``(You)'' indicator for the connected account.
+  \item \textbf{Propose Transaction}: form with recipient address, ETH amount, category dropdown (General / Supplies / Events / Equipment / Travel / Awards), and description.
+  \item \textbf{Spending Proposals}: reverse-chronological list with status badge (Pending $n$/2 / Executed / Cancelled / Expired), category badge, 7-day expiry countdown, and per-proposal action buttons (Approve / Revoke / Execute / Cancel Expired).
+  \item \textbf{Executive Replacement}: collapsible panel with old/new address inputs, replacement proposal list, and Approve / Execute buttons.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════
+\section{Team Contribution Table}
+% ══════════════════════════════════════════════════════════
+
+\begin{table}[h]
+  \centering
+  \begin{tabularx}{\linewidth}{>{\bfseries}lXl}
+    \toprule
+    Member & Responsibilities & \% \\
+    \midrule
+    Akhmed Assentay \newline (201842715) &
+      Full smart contract design and implementation (multi-sig, modifiers, events,
+      emergency pause, category budget caps, executive replacement, donor leaderboard,
+      7-day expiry); Solidity security review; Hardhat configuration; deployment script;
+      complete 75-test test suite; DApp frontend (HTML, CSS, ethers.js);
+      GitHub repository; LaTeX report (all sections). &
+      100\% \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Team contribution — sole author}
+\end{table}
+
+% ══════════════════════════════════════════════════════════
+\section{Challenges and Solutions}
+% ══════════════════════════════════════════════════════════
+
+\begin{enumerate}
+
+\item \textbf{Proposer's vote was not counted (3rd-person agreement bug).}
+
+  \textit{Problem}: The original contract required the proposer to call \texttt{approveTransaction()} separately after proposing, meaning their agreement was not recorded at proposal time. This made the proposer's participation feel broken.
+
+  \textit{Solution}: Set \texttt{approvalCount = 1} and \texttt{hasApproved[txIndex][msg.sender] = true} inside \texttt{proposeTransaction()}. The proposer's vote is now registered automatically. A double-approve guard was updated to reject the proposer if they try to approve again.
+
+\item \textbf{MetaMask not connecting to the DApp.}
+
+  \textit{Problem}: Running \texttt{npx hardhat run scripts/deploy.js} without \texttt{npx hardhat node} open spins up a temporary in-process EVM that shuts down immediately. MetaMask has no RPC endpoint to connect to.
+
+  \textit{Solution}: The correct sequence is: (1) run \texttt{npx hardhat node} to start a persistent local blockchain on port 8545, (2) run \texttt{npx hardhat run scripts/deploy.js \textbf{--network localhost}} to deploy to it. Added a \texttt{Hardhat Local} custom network (Chain ID 31337, RPC \texttt{http://127.0.0.1:8545}) to MetaMask.
+
+\item \textbf{Category budget test assertion at wrong call site.}
+
+  \textit{Problem}: A test expected the ``Category budget exceeded'' revert at \texttt{executeTransaction()}, but the contract checks the cap at \texttt{proposeTransaction()} time (earlier is better — early rejection saves gas).
+
+  \textit{Solution}: Updated the test to assert the revert at \texttt{proposeTransaction()} and updated the test name to accurately describe the behaviour.
+
+\item \textbf{Pause vote state not resetting after unpause.}
+
+  \textit{Problem}: After a pause-then-unpause cycle the \texttt{hasPauseVoted} and \texttt{hasUnpauseVoted} mappings were dirty. A second pause attempt was immediately blocked.
+
+  \textit{Solution}: Introduced \texttt{\_resetPauseVotes()} which iterates over the 3 executives and clears both mappings and both counters after a successful unpause.
+
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════
+\section{Limitations}
+% ══════════════════════════════════════════════════════════
+
+\begin{itemize}
+  \item \textbf{Fixed membership size}: The contract enforces exactly 3 executives. Scaling to $m$-of-$n$ with variable $n$ would require architectural changes.
+  \item \textbf{No quorum on budget cap changes}: Any single executive can change a category cap immediately. A future version should require 2-of-3 to change budget limits.
+  \item \textbf{No proposal amendment}: Once proposed, the recipient, amount, and category cannot be changed. A new proposal must be created.
+  \item \textbf{Donor leaderboard not sorted}: \texttt{getDonor(index)} returns donors in insertion order, not ranked by donation size. Sorting would require additional gas.
+  \item \textbf{Testnet only}: The DApp is demonstrated on Sepolia testnet, not Ethereum mainnet, so no real funds are at risk.
+  \item \textbf{No multi-token support}: The treasury only holds and transfers ETH; ERC-20 token support is not implemented.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════
+\section{Future Work}
+% ══════════════════════════════════════════════════════════
+
+\begin{itemize}
+  \item \textbf{Variable $m$-of-$n$ threshold}: Allow the club to configure both the number of executives and the required approval count through a governance proposal.
+  \item \textbf{ERC-20 token support}: Enable the treasury to hold and distribute stablecoins (USDC, DAI) in addition to ETH.
+  \item \textbf{Governed budget cap changes}: Require 2-of-3 approval to update a category cap, treating it as a governance action.
+  \item \textbf{Sorted donor leaderboard}: Maintain an on-chain sorted ranking using a heap or off-chain indexing via The Graph.
+  \item \textbf{Mainnet deployment}: Deploy to Ethereum mainnet with a real audit, enabling actual student clubs to use the system.
+  \item \textbf{Mobile wallet support}: Test and document WalletConnect integration for non-MetaMask wallets.
+  \item \textbf{Event-driven UI}: Replace polling with ethers.js event listeners so the DApp updates instantly on every on-chain action without the user refreshing.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════
+\section{Conclusion}
+% ══════════════════════════════════════════════════════════
+
+This project demonstrates how a student club can replace a single, trusted treasurer with a transparent, tamper-proof multi-signature treasury managed collectively by three elected executives. The key achievements are:
+
+\begin{itemize}
+  \item A clean 2-of-3 multi-sig Solidity contract with proposer auto-approval, ensuring every executive's vote is meaningful from the first moment of a proposal.
+  \item Three advanced governance features implemented on-chain: emergency pause circuit breaker, per-category spending budget caps, and executive address replacement.
+  \item A transparent donor leaderboard and 7-day proposal expiry mechanism.
+  \item A responsive browser DApp with real-time state display, expiry countdowns, category badges, and collapsible governance panels.
+  \item A 75-test Hardhat suite covering all happy paths, access-control violations, edge cases, time-travel expiry scenarios, and full end-to-end workflows.
+  \item A LaTeX technical report following the course template, with tables, figures, security analysis, and a complete step-by-step setup guide.
+\end{itemize}
+
+The system is fully functional on the Ethereum Sepolia testnet and the local Hardhat network, and is ready for live demonstration.
+
+% ══════════════════════════════════════════════════════════
+\section{References}
+% ══════════════════════════════════════════════════════════
+
+\begin{enumerate}
+  \item Ethereum Foundation. \textit{Ethereum Documentation}. \url{https://ethereum.org/en/developers/docs/}. Accessed April 2026.
+  \item Ethereum Foundation. \textit{Solidity Language Documentation v0.8.20}. \url{https://docs.soliditylang.org/en/v0.8.20/}. Accessed April 2026.
+  \item NomicFoundation. \textit{Hardhat Documentation}. \url{https://hardhat.org/docs}. Accessed April 2026.
+  \item ethers.js Contributors. \textit{ethers.js v6 Documentation}. \url{https://docs.ethers.org/v6/}. Accessed April 2026.
+  \item MetaMask Team. \textit{MetaMask Developer Documentation}. \url{https://docs.metamask.io/}. Accessed April 2026.
+  \item Gnosis Safe. \textit{Safe\{Wallet\} — Multi-Signature Wallet Reference Implementation}. \url{https://safe.global/}. Accessed April 2026.
+  \item ConsenSys Diligence. \textit{Smart Contract Best Practices: Re-Entrancy}. \url{https://consensys.github.io/smart-contract-best-practices/attacks/reentrancy/}. Accessed April 2026.
+  \item OWASP. \textit{Smart Contract Top 10}. \url{https://owasp.org/www-project-smart-contract-top-10/}. Accessed April 2026.
+  \item Buterin, V. \textit{A Next-Generation Smart Contract and Decentralized Application Platform}. Ethereum White Paper, 2014. \url{https://ethereum.org/en/whitepaper/}.
+  \item OpenZeppelin. \textit{OpenZeppelin Contracts Documentation — Access Control}. \url{https://docs.openzeppelin.com/contracts/5.x/access-control}. Accessed April 2026.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════
+\section*{Appendix — Setup Guide for Executives}
+\addcontentsline{toc}{section}{Appendix — Setup Guide for Executives}
+% ══════════════════════════════════════════════════════════
+
+\textbf{Step 1 — Install MetaMask.}
+Each executive installs the MetaMask browser extension from \url{https://metamask.io} and creates a new wallet. The 12-word Secret Recovery Phrase must be written on paper and stored securely — it is the only way to recover the wallet.
+
+\textbf{Step 2 — Switch to the local Hardhat network.}
+In MetaMask: network dropdown → Add a custom network. Enter: Name = \texttt{Hardhat Local}, RPC URL = \texttt{http://127.0.0.1:8545}, Chain ID = \texttt{31337}, Currency = \texttt{ETH}.
+
+\textbf{Step 3 — Import a test account.}
+In MetaMask: account icon → Import account → paste one of the private keys printed by \texttt{npx hardhat node} (Account \#0, \#1, or \#2).
+
+\textbf{Step 4 — Start the local blockchain.}
+\begin{lstlisting}[language=bash]
+cd smart_gr_contract
+npx hardhat node          # keep this terminal open
+\end{lstlisting}
+
+\textbf{Step 5 — Deploy the contract.}
+\begin{lstlisting}[language=bash]
+# In a second terminal:
+npx hardhat run scripts/deploy.js --network localhost
+# Copy the printed contract address.
+\end{lstlisting}
+
+\textbf{Step 6 — Update the frontend.}
+Open \texttt{frontend/index.html}, find \texttt{const CONTRACT\_ADDRESS} and replace the value with the address from Step 5. Save and open in Chrome/Firefox.
+
+\textbf{Step 7 — Run all tests.}
+\begin{lstlisting}[language=bash]
+npx hardhat test
+# Expected output: 75 passing
+\end{lstlisting}
+
+\end{document}
