@@ -118,21 +118,19 @@
 
 \subsection{Problem Statement}
 
-Student clubs regularly collect membership dues, accept donations, and spend on events, equipment, and travel. In traditional clubs, financial authority is vested in a single treasurer — a single point of failure. Funds can be lost if the treasurer is unavailable, acts unilaterally, loses their credentials, or leaves the organisation.
-
+Student clubs routinely raise membership fees, solicit donations and use this money on activities, equipment and travel. Traditional clubs place financial control into the hands of a single treasurer- one point of failure. Money may also be wasted in the event that the treasurer is not available, behaves independently, misplaces his or her credentials or the organization loses the treasurer.
 \subsection{Why This Problem Matters}
 
 \begin{itemize}
-  \item A solo treasurer can unilaterally drain the treasury with no checks.
-  \item There is no transparent audit trail — members cannot independently verify spending.
-  \item Key loss or leadership transitions can freeze access to club funds entirely.
-  \item Disputes over budget allocations have no on-chain resolution mechanism.
+  \item A single treasurer is able to empty the treasury at will without checks.
+  \item No clear audit trail- members do not have the ability to independently check spending.
+  \item The loss or change of leaders may paralyze club funds in case of key change or loss.
+  \item Budgetary disputes lack a mechanism of being resolved on-chain.
 \end{itemize}
 
 \subsection{What the Project Solves}
 
-This project implements a \textbf{Multi-Signature (Multi-Sig) Treasury} smart contract that requires \textbf{2 out of 3} elected club executives to approve any outgoing transaction. No single person can unilaterally move funds, and every proposal, approval, and execution is permanently recorded on the Ethereum blockchain.
-
+This project implements a \textbf{Multi-Signature (Multi-Sig) Treasury} Treasury smart contract to ensure that any transaction going out is approved by \textbf{2 out of 3} elected club executives. No individual can transfer funds independently and all offers, consent and actions are forever etched on the Ethereum blockchain.
 \subsection{Blockchain Solution Overview}
 
 The system is composed of three layers:
@@ -201,17 +199,17 @@ The system is composed of three layers:
 \subsection{Technologies Used}
 
 \begin{itemize}
-  \item \textbf{Solidity \textasciicircum 0.8.20} — smart contract language.
-  \item \textbf{Hardhat v2.22} — Ethereum development environment.
-  \item \textbf{Chai} — assertion library for JavaScript tests.
-  \item \textbf{ethers.js v6} — Ethereum library for the browser DApp.
-  \item \textbf{HTML5 / CSS3 / Vanilla JS} — frontend (no framework dependency).
+  \item \textbf{Solidity \textasciicircum 0.8.20} - smart contract language.
+  \item \textbf{Hardhat v2.22} - Ethereum development environment.
+  \item \textbf{Chai} - assertion library for JavaScript tests.
+  \item \textbf{ethers.js v6} - Ethereum library for the browser DApp.
+  \item \textbf{HTML5 / CSS3 / Vanilla JS} - frontend (no framework dependency).
   \item \textbf{Node.js / npm} — toolchain.
 \end{itemize}
 
 \subsection{How Users Interact with the System}
 
-Executives and members open \texttt{frontend/index.html} in their browser, connect MetaMask (set to the local Hardhat network or Sepolia), and interact through the UI. Every button click triggers a signed Ethereum transaction, which Hardhat or Sepolia mines and records permanently.
+In browser, executives and members open \texttt{frontend/index.html} and connect MetaMask (configured to the local Hardhat network or Sepolia) and use the UI. Each button press causes an Ethereum transaction to be signed, and mined by Hardhat or Sepolia permanently.
 
 \subsection{Architecture Diagram}
 
@@ -250,32 +248,32 @@ Executives and members open \texttt{frontend/index.html} in their browser, conne
 \subsection{Planning Process}
 
 \begin{enumerate}
-  \item Reviewed the project description: 2-of-3 multi-sig treasury for student clubs (DAO variant).
-  \item Identified the core problem: single-treasurer risk and lack of on-chain transparency.
-  \item Defined the governance model: propose → approve → execute lifecycle.
-  \item Identified additional features required for full marks: budget caps, emergency pause, donor leaderboard, executive replacement.
-  \item Selected technology stack: Solidity, Hardhat, ethers.js v6, MetaMask.
+  \item Read through the project description: 2-of-3 multi-sig treasury student club (DAO version).
+  \item Found the central issue: single-treasurer risk and absence of transparency on-chain.
+  \item Clarified the model of governance: propose and approve and execute lifecycle.
+  \item Selected other features to earn the full marks: budget limits, emergency stop, donor leaderboard, executive change.
+  \item Chosen technology stack: Solidity, Hardhat, ethers.js v6, MetaMask.
 \end{enumerate}
 
 \subsection{Development Stages}
 
 \begin{enumerate}
   \item \textbf{Core contract} — constructor, modifiers, deposit, basic multi-sig (propose / approve / revoke / execute).
-  \item \textbf{Proposer auto-approval} — fixed the issue where the proposer's own agreement was not counted.
+  \item \textbf{Proposer auto-approval} — had corrected the problem that the number of agreements of the proposer himself was not counted.
   \item \textbf{Spending categories} — added \texttt{category} field to proposals.
   \item \textbf{7-day expiry} — \texttt{createdAt} timestamp and \texttt{cancelExpiredTransaction()}.
-  \item \textbf{Executive replacement} — separate governance flow for key-rotation.
+  \item \textbf{Executive replacement} — independent flow of key-rotation.
   \item \textbf{Emergency pause} — 2-of-3 vote circuit breaker with reset-on-unpause.
   \item \textbf{Category budget caps} — per-category ETH cap enforced at propose and execute time.
   \item \textbf{Donor leaderboard} — \texttt{totalDonated} mapping and \texttt{\_donors} array.
-  \item \textbf{Frontend DApp} — full UI for all contract features, expiry countdown, category badges.
-  \item \textbf{Test suite} — 75 automated tests across all features and edge cases.
-  \item \textbf{Documentation} — this report and LaTeX source file.
+  \item \textbf{Frontend DApp} — complete interface to all contract features, countdown exiry, category badge.
+  \item \textbf{Test suite} —  75 automated tests in all the features and edge cases.
+  \item \textbf{Documentation} — this report and LaTeX source code.
 \end{enumerate}
 
 \subsection{Testing and Debugging}
 
-Tests were written in parallel with each feature using Hardhat's in-process network. Time-dependent tests (expiry) used \texttt{evm\_increaseTime} to simulate 7-day passage without waiting. The one test bug found was a category-cap assertion at the wrong call site (propose vs.\ execute) — fixed once the actual revert location was identified from the Hardhat stack trace.
+Tests were penned in parallel on each feature with Hardhat in-process network. The evm of time dependent tests (expiry) used \texttt{evm\_increaseTime} to represent passage over 7 days without waiting. The single bug detected was a category-cap assertion at the misplaced call site (propose vs. \ execute) - repaired after determining the real revert location by looking at the Hardhat stack trace.
 
 % ══════════════════════════════════════════════════════════
 \section{Smart Contract Design}
@@ -283,7 +281,7 @@ Tests were written in parallel with each feature using Hardhat's in-process netw
 
 \subsection{Purpose of the Smart Contract}
 
-\texttt{MultiSigTreasury} is a trustless governance contract: it holds ETH on behalf of a student club and enforces a 2-of-3 approval requirement for every outgoing payment. It additionally manages executive identity (replacement), emergency safety (pause), budget discipline (category caps), and community transparency (donor leaderboard).
+\texttt{MultiSigTreasury} is a trustless governance contract: it stores ETH on behalf of a student club, and requires 2 of 3 people to approve each outgoing payment. It additionally manages executive identity (replacement), emergency safety (pause), budget discipline (category caps), and community transparency (donor leaderboard).
 
 \subsection{Contract Structure}
 \label{sec:contract-structure}
@@ -427,8 +425,7 @@ Any executive may cancel a proposal that has not been executed within 7 days. Th
 
 \subsubsection*{5.2.6\ \ votePause() / voteUnpause()}
 
-Any executive can cast a pause vote. Once 2 votes are cast the contract sets \texttt{paused = true}, blocking all spending functions. Unpause requires 2 more votes and resets all vote state so the cycle can repeat.
-
+A pause vote can be cast by any executive. When 2 votes are cast the contract sends \texttt{paused = true}, preventing all spending functions. Unpause needs 2 additional votes and clears all the vote state to start the cycle again.
 \subsubsection*{5.2.7\ \ setCategoryBudget()}
 
 Sets a maximum cumulative ETH cap for a named category (hashed to \texttt{bytes32} key). A cap of 0 removes the limit.
@@ -579,7 +576,7 @@ The browser DApp displays the following panels when MetaMask is connected:
 
 \item \textbf{Proposer's vote was not counted (3rd-person agreement bug).}
 
-  \textit{Problem}: The original contract required the proposer to call \texttt{approveTransaction()} separately after proposing, meaning their agreement was not recorded at proposal time. This made the proposer's participation feel broken.
+  \textit{Problem}: The original contract meant that the proposer has to call \texttt{approveTransaction()} after proposal, i.e. they would not make their agreement recorded at the time of proposal. This caused the participation of the proposer to be broken.
 
   \textit{Solution}: Set \texttt{approvalCount = 1} and \texttt{hasApproved[txIndex][msg.sender] = true} inside \texttt{proposeTransaction()}. The proposer's vote is now registered automatically. A double-approve guard was updated to reject the proposer if they try to approve again.
 
@@ -608,12 +605,12 @@ The browser DApp displays the following panels when MetaMask is connected:
 % ══════════════════════════════════════════════════════════
 
 \begin{itemize}
-  \item \textbf{Fixed membership size}: The contract enforces exactly 3 executives. Scaling to $m$-of-$n$ with variable $n$ would require architectural changes.
-  \item \textbf{No quorum on budget cap changes}: Any single executive can change a category cap immediately. A future version should require 2-of-3 to change budget limits.
-  \item \textbf{No proposal amendment}: Once proposed, the recipient, amount, and category cannot be changed. A new proposal must be created.
-  \item \textbf{Donor leaderboard not sorted}: \texttt{getDonor(index)} returns donors in insertion order, not ranked by donation size. Sorting would require additional gas.
-  \item \textbf{Testnet only}: The DApp is demonstrated on Sepolia testnet, not Ethereum mainnet, so no real funds are at risk.
-  \item \textbf{No multi-token support}: The treasury only holds and transfers ETH; ERC-20 token support is not implemented.
+  \item \textbf{Fixed membership size}: The contract has a fixed number of 3 executives. It would require architectural modifications to scale to a variable $m$-of-$n$ with $n$.
+  \item \textbf{No quorum on budget cap changes}: Any one executive can modify a category cap on-the-fly. The budget limits should change to 2-of-3 in a future version.
+  \item \textbf{No proposal amendment}: Once made, no possible modification of the recipient, amount, and category. New proposal will have to be developed.
+  \item \textbf{Donor leaderboard not sorted}: \texttt{getDonor(index)} displays donors in the order they were inserted, but not by the size of the donation. Sorting would involve more gas.
+  \item \textbf{Testnet only}:  The DApp is not shown on the Ethereum mainnet but on Sepolia testnet, thus, no actual money is lost.
+  \item \textbf{No multi-token support}: The treasury only holds and transfers ETH; there is no implementation of ERC-20 token support.
 \end{itemize}
 
 % ══════════════════════════════════════════════════════════
@@ -621,13 +618,13 @@ The browser DApp displays the following panels when MetaMask is connected:
 % ══════════════════════════════════════════════════════════
 
 \begin{itemize}
-  \item \textbf{Variable $m$-of-$n$ threshold}: Allow the club to configure both the number of executives and the required approval count through a governance proposal.
-  \item \textbf{ERC-20 token support}: Enable the treasury to hold and distribute stablecoins (USDC, DAI) in addition to ETH.
-  \item \textbf{Governed budget cap changes}: Require 2-of-3 approval to update a category cap, treating it as a governance action.
-  \item \textbf{Sorted donor leaderboard}: Maintain an on-chain sorted ranking using a heap or off-chain indexing via The Graph.
-  \item \textbf{Mainnet deployment}: Deploy to Ethereum mainnet with a real audit, enabling actual student clubs to use the system.
+  \item \textbf{Variable $m$-of-$n$ threshold}: The club should be given an opportunity to adjust the number of executives and the amount of required approvals by a governance proposal.
+  \item \textbf{ERC-20 token support}: Have the treasury able to store and issue stablecoins (USDC, DAI) as well as ETH.
+  \item \textbf{Governed budget cap changes}:Require 2-of-3 to change a category cap, which is a governance action.
+  \item \textbf{Sorted donor leaderboard}: Have a sorted ranking on chain (a heap) or off-chain (The Graph) indexing.
+  \item \textbf{Mainnet deployment}: Deploy to Ethereum mainnet with a real audit so that the system can be used by real student clubs.
   \item \textbf{Mobile wallet support}: Test and document WalletConnect integration for non-MetaMask wallets.
-  \item \textbf{Event-driven UI}: Replace polling with ethers.js event listeners so the DApp updates instantly on every on-chain action without the user refreshing.
+  \item \textbf{Event-driven UI}: Use ethers.js event listeners instead of polling to ensure that the DApp is updated immediately after each on-chain event instead of the user refreshing.
 \end{itemize}
 
 % ══════════════════════════════════════════════════════════
@@ -637,16 +634,15 @@ The browser DApp displays the following panels when MetaMask is connected:
 This project demonstrates how a student club can replace a single, trusted treasurer with a transparent, tamper-proof multi-signature treasury managed collectively by three elected executives. The key achievements are:
 
 \begin{itemize}
-  \item A clean 2-of-3 multi-sig Solidity contract with proposer auto-approval, ensuring every executive's vote is meaningful from the first moment of a proposal.
-  \item Three advanced governance features implemented on-chain: emergency pause circuit breaker, per-category spending budget caps, and executive address replacement.
-  \item A transparent donor leaderboard and 7-day proposal expiry mechanism.
+  \item 2-of-3 multi-sig Solidity contract where the proposer is automatically approved, so that the votes of each executive count at the very introduction of a proposal.
+  \item Three progressive governance mechanisms on-chain: emergency pause circuit breaker, spending limits by category, and replacing executives.
+  \item Open donor leaderboard and 7 days expiry on proposal.
   \item A responsive browser DApp with real-time state display, expiry countdowns, category badges, and collapsible governance panels.
-  \item A 75-test Hardhat suite covering all happy paths, access-control violations, edge cases, time-travel expiry scenarios, and full end-to-end workflows.
+  \item A 75-test Hardhat suite of all happy paths, access-control attacks, edge cases, time-travel expiry tests, complete end-to-end tests.
   \item A LaTeX technical report following the course template, with tables, figures, security analysis, and a complete step-by-step setup guide.
 \end{itemize}
 
-The system is fully functional on the Ethereum Sepolia testnet and the local Hardhat network, and is ready for live demonstration.
-
+It can be used on the Ethereum Sepolia testnet and the Hardhat local network, and is fully functional and ready to be demonstrated live.
 % ══════════════════════════════════════════════════════════
 \section{References}
 % ══════════════════════════════════════════════════════════
